@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Cosmos Step Test</title>
+<style>
+body { margin:0; overflow:hidden; background:#000010; }
+#graph { width:100vw; height:100vh; }
+#log { position:fixed; top:20px; left:20px; color:#0f0; font:13px monospace; z-index:10; background:rgba(0,0,0,0.85); padding:12px 16px; border-radius:6px; max-width:600px; white-space:pre-wrap; }
+</style>
+</head>
+<body>
+<div id="graph"></div>
+<div id="log"></div>
+
+<script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
+<script src="https://unpkg.com/3d-force-graph@1.73.0/dist/3d-force-graph.min.js"></script>
+<script>
+var el = document.getElementById('log');
+function L(m) { el.textContent += m + '\n'; }
+
+L('Step 0: Script started');
+L('THREE: ' + (typeof THREE !== 'undefined' ? 'OK' : 'MISSING'));
+L('ForceGraph3D: ' + (typeof ForceGraph3D !== 'undefined' ? 'OK' : 'MISSING'));
+
+// Test 1: Try with just 5 hardcoded nodes (matching test_graph.html pattern)
+L('');
+L('--- Test 1: 5 hardcoded nodes ---');
+var testData = {
+  nodes: [
+    {id:'A', group:'person', color:'#FF6B6B', size:6, connections:2},
+    {id:'B', group:'animal', color:'#4ECDC4', size:5, connections:1},
+    {id:'C', group:'place', color:'#6BCB77', size:5, connections:2},
+    {id:'D', group:'event', color:'#FF8C42', size:4, connections:2},
+    {id:'E', group:'emotion', color:'#C77DFF', size:4, connections:1},
+  ],
+  links: [
+    {source:'A', target:'B', relation:'feeds'},
+    {source:'B', target:'C', relation:'lives_in'},
+    {source:'A', target:'D', relation:'triggers'},
+    {source:'D', target:'E', relation:'causes'},
+    {source:'C', target:'E', relation:'atmosphere'},
+  ]
+};
+
+var R = 150;
+var phi = Math.PI * (3-Math.sqrt(5));
+testData.nodes.forEach(function(n,i){
+  var y = 1 - (i/(testData.nodes.length-1))*2;
+  var ry = Math.sqrt(1-y*y);
+  n.fx = Math.cos(phi*i)*ry*R;
+  n.fy = y*R;
+  n.fz = Math.sin(phi*i)*ry*R;
+});
+
+try {
+  L('Creating ForceGraph3D...');
+  var g1 = ForceGraph3D()(document.getElementById('graph'))
+    .graphData(testData)
+    .backgroundColor('#000010')
+    .nodeColor(function(n){return n.color;})
+    .nodeVal(function(n){return n.size;})
+    .nodeLabel(function(n){return n.id;})
+    .nodeResolution(32)
+    .linkColor(function(){return 'rgba(100,160,240,0.5)'})
+    .linkWidth(2)
+    .linkDirectionalParticles(1)
+    .linkDirectionalParticleSpeed(0.005)
+    .linkDirectionalParticleWidth(2)
+    .width(window.innerWidth)
+    .height(window.innerHeight);
+  L('Test 1 PASSED: 5 nodes rendered successfully!');
+  L('');
+  L('Conclusion: Code pattern works. Problem is likely in the data embedding.');
+  L('Try loading graph_data.json via fetch instead of embedding.');
+} catch(e) {
+  L('Test 1 FAILED: ' + e.message);
+}
+</script>
+</body>
+</html>

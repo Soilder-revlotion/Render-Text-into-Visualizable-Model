@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>3D Graph Test</title>
+<style>
+body { margin:0; overflow:hidden; background:#000010; font-family:monospace; }
+#graph { width:100vw; height:100vh; }
+#log { position:fixed; bottom:20px; left:20px; color:#0f0; font-size:12px; z-index:10; background:rgba(0,0,0,0.85); padding:10px 14px; border-radius:6px; max-height:300px; overflow-y:auto; max-width:500px; white-space:pre-wrap; }
+</style>
+</head>
+<body>
+<div id="graph"></div>
+<div id="log"></div>
+
+<script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
+<script src="https://unpkg.com/3d-force-graph@1.73.0/dist/3d-force-graph.min.js"></script>
+<script>
+var el = document.getElementById('log');
+function L(m) { el.textContent += m + '\n'; console.log(m); }
+
+L('THREE: ' + (typeof THREE !== 'undefined' ? 'v' + THREE.REVISION : 'MISSING'));
+L('ForceGraph3D: ' + (typeof ForceGraph3D !== 'undefined' ? 'OK' : 'MISSING'));
+
+if (typeof THREE === 'undefined' || typeof ForceGraph3D === 'undefined') {
+  L('FATAL: Libraries not loaded!');
+} else {
+  L('All libraries loaded. Creating graph...');
+
+  var data = {
+    nodes: [
+      {id:'人物A', group:'person', color:'#FF6B6B', size:7, connections:3},
+      {id:'动物B', group:'animal', color:'#4ECDC4', size:5, connections:1},
+      {id:'地点C', group:'place', color:'#6BCB77', size:6, connections:2},
+      {id:'事件D', group:'event', color:'#FF8C42', size:5, connections:2},
+      {id:'情绪E', group:'emotion', color:'#C77DFF', size:4, connections:1},
+    ],
+    links: [
+      {source:'人物A', target:'动物B', relation:'喂养'},
+      {source:'动物B', target:'地点C', relation:'栖息'},
+      {source:'人物A', target:'事件D', relation:'触发'},
+      {source:'事件D', target:'情绪E', relation:'导致'},
+      {source:'地点C', target:'情绪E', relation:'氛围'},
+    ]
+  };
+
+  // Sphere layout
+  var R = 150;
+  var phi = Math.PI * (3-Math.sqrt(5));
+  data.nodes.forEach(function(n,i){
+    var y = 1 - (i/(data.nodes.length-1))*2;
+    var ry = Math.sqrt(1-y*y);
+    var th = phi*i;
+    n.fx = Math.cos(th)*ry*R;
+    n.fy = y*R;
+    n.fz = Math.sin(th)*ry*R;
+  });
+
+  try {
+    var g = ForceGraph3D()(document.getElementById('graph'))
+      .graphData(data)
+      .backgroundColor('#000010')
+      .nodeColor(function(n){return n.color;})
+      .nodeVal(function(n){return n.size;})
+      .nodeLabel(function(n){return n.id+' ['+n.group+'] links:'+n.connections;})
+      .nodeResolution(32)
+      .linkColor(function(){return 'rgba(120,160,240,0.5)'})
+      .linkWidth(2)
+      .linkDirectionalParticles(2)
+      .linkDirectionalParticleSpeed(0.004)
+      .linkDirectionalParticleWidth(1.5)
+      .linkDirectionalParticleColor(function(){return 'rgba(255,200,80,0.7)'})
+      .onNodeClick(function(n){L('Click: '+n.id);})
+      .width(window.innerWidth)
+      .height(window.innerHeight);
+
+    L('Graph created! Nodes: '+data.nodes.length+', Links: '+data.links.length);
+    L('You should see 5 colored spheres with flow particles.');
+    L('Drag to rotate, scroll to zoom.');
+  } catch(e) {
+    L('ERROR: '+e.message+'\n'+e.stack);
+  }
+}
+</script>
+</body>
+</html>
