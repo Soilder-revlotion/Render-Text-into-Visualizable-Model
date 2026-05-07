@@ -59,6 +59,13 @@
 
 ## 快速开始
 
+项目概览
+<img width="1440" height="885" alt="Snipaste_2026-05-07_16-13-29" src="https://github.com/user-attachments/assets/21b2b99b-16d4-4fc6-8fa1-d15a14ff755b" />
+
+<img width="1445" height="884" alt="Snipaste_2026-05-07_16-14-24" src="https://github.com/user-attachments/assets/92ad29b8-dc21-47ad-a858-139242956d77" />
+
+
+
 ### 环境要求
 
 - Python 3.10+
