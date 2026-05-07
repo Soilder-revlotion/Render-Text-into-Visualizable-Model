@@ -64,6 +64,9 @@
 
 <img width="1445" height="884" alt="Snipaste_2026-05-07_16-14-24" src="https://github.com/user-attachments/assets/92ad29b8-dc21-47ad-a858-139242956d77" />
 
+<img width="1426" height="512" alt="image" src="https://github.com/user-attachments/assets/2b28c047-0451-44f7-8c11-9ff98f112df4" />
+
+
 
 
 ### 环境要求
