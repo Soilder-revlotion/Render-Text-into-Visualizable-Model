@@ -36,7 +36,7 @@
 ├── requirements.txt             # Python 依赖
 │
 ├── milestone1_design.py         # 里程碑 1：提取模板设计（Prompt + Examples）
-├── milestone2_extract.py        # 里程碑 2：LangExtract 提取脚本（需要 API Key）
+├── milestone2_extract.py        # 里程碑 2：LangExtract 提取脚本（支持本地 Ollama / Gemini API）
 ├── generate_sample_data.py      # 替代方案：手工构造 72 条提取数据
 ├── milestone3_convert.py        # 里程碑 3：JSONL → graph_data.json 转换
 ├── milestone5_quality.py        # 里程碑 5：数据质量检查与自动清洗
@@ -63,7 +63,9 @@
 
 - Python 3.10+
 - 现代浏览器（Chrome / Edge / Firefox）
-- （可选）Google Gemini API Key（用于 LangExtract 提取）
+- 大模型二选一：
+  - **本地 Ollama**（推荐，免费，无需联网）— 需要 8GB+ 内存
+  - **Google Gemini API**（需要 API Key 和网络）
 
 ### 安装
 
@@ -71,9 +73,9 @@
 pip install -r requirements.txt
 ```
 
-### 方式一：直接查看可视化（推荐）
+### 方式一：直接查看可视化
 
-如果只是想看效果，直接用浏览器打开 `cosmos.html` 即可。
+如果只是想看效果，直接用浏览器打开 `cosmos.html` 即可（已内含示例数据）。
 
 操作方式：
 - **拖拽** 旋转球体
@@ -82,44 +84,86 @@ pip install -r requirements.txt
 - **点击关联标签** 跳转到对应节点
 - **右键 / Esc** 关闭详情、复位视角
 
-### 方式二：使用现有数据完整构建
+---
+
+### 方式二：用自己的文档推演（完整流程）
+
+以下是将**你自己的文本**转化为 3D 知识星球的完整步骤。
+
+#### 2.1 准备你的文本
 
 ```bash
-# 从 graph_data.json 生成 graph_data.js 和 cosmos.html
-python build_cosmos.py
+# 将你的文本保存为 .txt 文件
+copy 你的文档.txt D:\claude\2-2Earth\sample_text.txt
+```
 
-# 质量检查
-python milestone5_quality.py --input graph_data.json
+文本可以是小说、新闻、论文、对话记录等任何中文内容。建议 1000~10000 字效果最佳。
 
-# 自动修复问题
+#### 2.2 运行提取
+
+**选项 A：使用本地 Ollama 模型（推荐，免费）**
+
+```bash
+# 1. 安装 Ollama (https://ollama.com/download/windows)
+# 2. 启动并下载模型（只需一次）
+ollama serve           # 启动服务
+ollama pull qwen2.5:7b # 下载中文模型（推荐 Qwen/Llama/Gemma 系列）
+
+# 3. 运行提取（无需 API Key）
+python milestone2_extract.py --text-file sample_text.txt --model qwen2.5:7b
+```
+
+LangExtract 会自动识别以下 Ollama 模型前缀：`qwen`, `gemma`, `llama`, `deepseek`, `mistral`, `phi` 等。
+
+如果你的 Ollama 不在默认端口：
+```bash
+python milestone2_extract.py --text-file sample_text.txt --model qwen2.5:7b --model-url http://localhost:11434
+```
+
+**选项 B：使用 Google Gemini API**
+
+```bash
+# 获取 Key: https://aistudio.google.com/ → "Get API key"
+set GOOGLE_API_KEY=你的key
+
+python milestone2_extract.py --text-file sample_text.txt --api-key 你的key --model gemini-2.5-flash
+```
+
+#### 2.3 转换为图数据
+
+```bash
+python milestone3_convert.py --input extraction_results.jsonl --output graph_data.json
+```
+
+#### 2.4 质量检查与清洗
+
+```bash
 python milestone5_quality.py --input graph_data.json --fix
 ```
 
-### 方式三：从零运行完整管线
-
-1. 准备文本文件（或用 `sample_text.txt`）
-2. 配置 API Key：
-   ```bash
-   set GOOGLE_API_KEY=your_key_here
-   ```
-3. 运行：
-   ```bash
-   run_all.bat
-   ```
-   或手动逐步执行：
-   ```bash
-   python milestone2_extract.py          # 步骤1：提取实体与关系
-   python milestone3_convert.py          # 步骤2：转换为图数据
-   python milestone5_quality.py --fix    # 步骤3：质量检查与清洗
-   python build_cosmos.py                # 步骤4：构建可视化页面
-   ```
-
-### 在没有 API Key 的情况下
-
-`generate_sample_data.py` 手工构造了示例文本的提取结果，输出 `extraction_results.jsonl` 和 `highlight.html`，可直接运行：
+#### 2.5 构建可视化
 
 ```bash
-python generate_sample_data.py
+python build_cosmos.py
+```
+
+#### 2.6 查看结果
+
+用浏览器打开 `cosmos.html`，即可探索属于你的文本知识星球。
+
+**一键运行（交互式）：**
+
+```bash
+run_all.bat
+# 按提示选择模型模式，自动完成全部 4 步
+```
+
+#### 无模型 / 无 API 的备用方案
+
+```bash
+python generate_sample_data.py      # 用内置的"蝴蝶回声"示例数据
+python milestone3_convert.py
+python build_cosmos.py
 ```
 
 ## 技术栈
